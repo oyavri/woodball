@@ -10,34 +10,42 @@ class Button extends Freezable {
         this.stroke = stroke;
         this.fontSize = fontSize;
 
-        this.mouseIsOnButton = false;
-        this.mouseClickStartedOnButton = false;
+        this.cursorIsOnButton = false;
+        this.cursorDownOnButton = false;
 
-        Input.registerTask(Input.taskId.mouseDown, this, (self, args) => {
-            if (args.button != Input.keys.mouseLeft || self.isFreezed() || !self.mouseIsOnButton) return;
-
-            self.mouseClickStartedOnButton = true;
-        });
-
-        Input.registerTask(Input.taskId.mouseUp, this, (self) => {
-            if (!self.mouseIsOnButton || !self.mouseClickStartedOnButton || self.isFreezed()) return;
-
-            self.mouseClickStartedOnButton = false;
-            self.click();
-        });
-
-        Input.registerTask(Input.taskId.mouseMove, this, (self, args) => {
+        let checkIsOnButton = (self, args) => {
             if (self.isFreezed()) return;
 
             let doContain = Vector.doContain(self.location, Vector.add(self.location, self.dimension), args.location);
-            self.mouseIsOnButton = (doContain) ? true : false;
-        });
+            self.cursorIsOnButton = (doContain) ? true : false;
+        },
+            checkStartedOnButton = (self, args) => {
+                if (args.hasOwnProperty("button") && args.button != Input.keys.mouseLeft) return;
+                if (self.isFreezed()) return;
+
+                self.cursorDownOnButton = (self.cursorIsOnButton) ? true : false;
+            },
+            clickButton = (self) => {
+                if (!self.cursorIsOnButton || !self.cursorDownOnButton || self.isFreezed()) return;
+
+                self.cursorDownOnButton = false;
+                self.click();
+            };
+
+        Input.registerTask(Input.taskId.mouseMove, this, checkIsOnButton);
+        Input.registerTask(Input.taskId.mouseDown, this, checkStartedOnButton);
+        Input.registerTask(Input.taskId.mouseUp, this, clickButton);
+
+        Input.registerTask(Input.taskId.touchMove, this, checkIsOnButton);
+        Input.registerTask(Input.taskId.touchStart, this, checkIsOnButton);
+        Input.registerTask(Input.taskId.touchStart, this, checkStartedOnButton);
+        Input.registerTask(Input.taskId.touchEnd, this, clickButton);
     }
 
     render() {
         Render.setLineWidth(config.buttonLineWidth);
         Render.setStrokeColor(config.field.lineColor);
-        Render.setFillColor((!this.mouseIsOnButton) ? config.field.backgroundColor : config.buttonHoverColor);
+        Render.setFillColor((!this.cursorIsOnButton) ? config.field.backgroundColor : config.buttonHoverColor);
         if (this.stroke) {
             Render.strokeFillRectangle(this.location.x, this.location.y, this.dimension.x, this.dimension.y);
         } else {

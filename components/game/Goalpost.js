@@ -8,7 +8,7 @@ class Goalpost {
 
     checkForCoin(coin) {
         if (coin.location.x - coin.radius >= this.x1 && coin.location.x + coin.radius <= this.x2 && coin.location.y - coin.radius >= this.y1 && coin.location.y + coin.radius <= this.y2) {
-        return true;
+            return true;
         }
     }
 }

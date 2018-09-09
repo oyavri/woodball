@@ -12,42 +12,50 @@ class Coin extends Freezable {
         this.isPlayerAiming = false;
         this.indicatorColor = 0;
 
-        Input.registerTask(Input.taskId.mouseDown, this, (self, args) => {
-            if (args.button != Input.keys.mouseLeft || self.isFreezed()) return;
-
+        let startUpdatingIndicator = (self, args) => {
+            if (args.hasOwnProperty("button") && args.button != Input.keys.mouseLeft) return;
+            if (self.isFreezed()) return;
             if (args.location.distance(self.location) < self.radius && self.velocity.getMag() == 0) self.isPlayerAiming = true;
-        });
+        },
+            updateIndicator = (self, args) => {
+                if (self.isPlayerAiming) {
+                    let aim = Vector.subtract(args.location, self.location),
+                        velocity = aim.clone().divide(-10).limit(config.coin.ballLaunchVelocityLimit),
+                        indicator = Vector.multiply(velocity, 2.72),
+                        color = map2(indicator.getMag(), 0, config.coin.ballLaunchVelocityLimit * 2.72, 110, 0);
 
-        Input.registerTask(Input.taskId.mouseDown, this, (self, args) => {
-            if (args.button != Input.keys.mouseRight || !self.isPlayerAiming || self.isFreezed()) return;
+                    self.aimVelocity.set(velocity.x, velocity.y);
+                    self.aimIndicator.set(indicator.x, indicator.y);
+                    self.indicatorColor = color;
+                }
+            },
+            launch = (self) => {
+                if (self.isPlayerAiming) {
+                    self.velocity.add(self.aimVelocity);
 
-            self.isPlayerAiming = false;
-            self.aimVelocity.set(0, 0);
-            self.aimIndicator.set(0, 0);
-        });
+                    self.isPlayerAiming = false
+                    self.aimVelocity.set(0, 0);
+                    self.aimIndicator.set(0, 0);
+                };
+            },
+            cancelLaunch = (self, args) => {
+                if (args.hasOwnProperty("button") && args.button != Input.keys.mouseRight) return;
+                if (!self.isPlayerAiming || self.isFreezed()) return;
 
-        Input.registerTask(Input.taskId.mouseMove, this, (self, args) => {
-            if (self.isPlayerAiming) {
-                let aim = Vector.subtract(args.location, self.location),
-                    velocity = aim.clone().divide(-10).limit(config.coin.ballLaunchVelocityLimit),
-                    indicator = Vector.multiply(velocity, 2.72),
-                    color = map2(indicator.getMag(), 0, config.coin.ballLaunchVelocityLimit * 2.72, 110, 0);
-
-                self.aimVelocity.set(velocity.x, velocity.y);
-                self.aimIndicator.set(indicator.x, indicator.y);
-                self.indicatorColor = color;
-            }
-        });
-
-        Input.registerTask(Input.taskId.mouseUp, this, (self) => {
-            if (self.isPlayerAiming) {
-                self.velocity.add(self.aimVelocity);
-
-                self.isPlayerAiming = false
+                self.isPlayerAiming = false;
                 self.aimVelocity.set(0, 0);
                 self.aimIndicator.set(0, 0);
-            };
-        });
+            }
+
+        Input.registerTask(Input.taskId.mouseDown, this, startUpdatingIndicator);
+        Input.registerTask(Input.taskId.mouseMove, this, updateIndicator);
+        Input.registerTask(Input.taskId.mouseUp, this, launch);
+        Input.registerTask(Input.taskId.mouseDown, this, cancelLaunch);
+
+        Input.registerTask(Input.taskId.touchStart, this, startUpdatingIndicator);
+        Input.registerTask(Input.taskId.touchMove, this, updateIndicator);
+        Input.registerTask(Input.taskId.touchEnd, this, launch);
+        Input.registerTask(Input.taskId.touchCancel, this, cancelLaunch);
     }
 
     checkAndResponseCollisions(lines, obstacles) {

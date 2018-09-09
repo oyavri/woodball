@@ -107,6 +107,7 @@ SceneLoader.addScene("inGame", {
             objects.coin.reset();
         }
         objects.coin.update();
+
         Render.background(config.field.backgroundColor);
         objects.field.renderField();
         objects.coin.render();

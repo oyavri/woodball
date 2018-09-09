@@ -1,7 +1,7 @@
 // Functions
 const map = (value, newRatio) => (value * newRatio) / 100;
 
-const map2 = (value, start1, stop1, start2, stop2)  => start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1));
+const map2 = (value, start1, stop1, start2, stop2) => start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1));
 
 const createInstances = (proto, propsArray) => propsArray.map(props => new proto.constructor(...props));
 
@@ -108,7 +108,7 @@ config.coin.indicatorLineWidth = map(0.2, canvas.width);
 
 // Goalposts
 config.goalposts.left.locations = [
-    config.fieldStartHorizontal - config.goalpostHorizontal,
+    config.fieldStartHorizontal - config.goalpostHorizontal - 10,
     config.canvas.height / 2 - config.goalpostVertical / 2,
     config.fieldStartHorizontal,
     config.canvas.height / 2 + config.goalpostVertical / 2
@@ -117,7 +117,7 @@ config.goalposts.left.locations = [
 config.goalposts.right.locations = [
     config.canvas.width - config.fieldStartHorizontal,
     config.canvas.height / 2 - config.goalpostVertical / 2,
-    config.canvas.width - config.fieldStartHorizontal + config.goalpostHorizontal,
+    config.canvas.width - config.fieldStartHorizontal + config.goalpostHorizontal + 10,
     config.canvas.height / 2 + config.goalpostVertical / 2
 ]
 
